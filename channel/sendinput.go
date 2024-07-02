@@ -35,6 +35,13 @@ func (c *Channel) SendInputB(input []byte, opts ...util.Option) ([]byte, error) 
 	go func() {
 		var b []byte
 
+		defer func() {
+			if r := recover(); r != nil {
+				c.l.Debugf("recovered from panic: %v", r)
+				cr <- &result{b: b, err: fmt.Errorf("recovered from panic: %v", r)}
+			}
+		}()
+
 		err = c.Write(input, false)
 		if err != nil {
 			cr <- &result{b: b, err: err}
